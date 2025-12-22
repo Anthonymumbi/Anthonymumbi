@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Users, TrendingUp, Calendar } from "lucide-react";
+import { apiUrl } from "@/lib/api";
 
 interface AnalyticsData {
   totalMembers: number;
@@ -28,7 +29,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/analytics");
+        const res = await fetch(apiUrl("/api/analytics"));
         if (!res.ok) throw new Error("Failed to fetch analytics");
         const data = await res.json();
         setAnalytics(data);

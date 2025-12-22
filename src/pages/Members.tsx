@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, Edit2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiUrl } from "@/lib/api";
 
 interface Member {
   id: number;
@@ -53,7 +54,7 @@ const Members = () => {
 
   const fetchMembers = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/members");
+      const res = await fetch(apiUrl("/api/members"));
       if (!res.ok) throw new Error("Failed to fetch members");
       const data = await res.json();
       setMembers(data);
@@ -73,14 +74,11 @@ const Members = () => {
     if (!editingMember) return;
 
     try {
-      const res = await fetch(
-        `http://localhost:4000/api/members/${editingMember.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(editingMember),
-        }
-      );
+      const res = await fetch(apiUrl(`/api/members/${editingMember.id}`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingMember),
+      });
 
       if (!res.ok) {
         const err = await res.json();
@@ -99,7 +97,7 @@ const Members = () => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
     try {
-      const res = await fetch(`http://localhost:4000/api/members/${id}`, {
+      const res = await fetch(apiUrl(`/api/members/${id}`), {
         method: "DELETE",
       });
 
