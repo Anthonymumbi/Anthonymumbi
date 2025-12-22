@@ -5,6 +5,7 @@ import FormRadioGroup from "./form/FormRadioGroup";
 import FormFileUpload from "./form/FormFileUpload";
 import SubmitButton from "./form/SubmitButton";
 import { toast } from "@/hooks/use-toast";
+import { apiUrl } from "@/lib/api";
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -214,7 +215,7 @@ const RegistrationForm = () => {
         fd.append('voterCardNumber', formData.voterCardNumber);
         fd.append('profilePhoto', formData.profilePhoto as File);
 
-        res = await fetch("http://localhost:4000/api/register", {
+        res = await fetch(apiUrl("/api/register"), {
           method: "POST",
           body: fd,
         });
@@ -231,7 +232,7 @@ const RegistrationForm = () => {
           isRegisteredVoter: formData.isRegisteredVoter,
           voterCardNumber: formData.voterCardNumber,
         };
-        res = await fetch("http://localhost:4000/api/register", {
+        res = await fetch(apiUrl("/api/register"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
