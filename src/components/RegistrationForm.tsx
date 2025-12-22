@@ -110,21 +110,37 @@ const RegistrationForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: string | File | null) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-      // Reset constituency when province changes
-      ...(field === "province" && { constituency: "" }),
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [field]: value,
+        // Reset constituency when province changes
+        ...(field === "province" && { constituency: "" }),
+      };
 
-    // Clear error when field is updated
-    if (errors[field]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
+      // If voter registration status changes to "no", clear the card number
+      if (field === "isRegisteredVoter" && value === "no") {
+        next.voterCardNumber = "";
+      }
+
+      return next;
+    });
+
+    // Clear error when field is updated or when dependency changes
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+
+      if (field === "province") {
+        delete newErrors.constituency;
+      }
+
+      if (field === "isRegisteredVoter" && value === "no") {
+        delete newErrors.voterCardNumber;
+      }
+
+      return newErrors;
+    });
   };
 
   const validate = () => {
@@ -162,15 +178,15 @@ const RegistrationForm = () => {
       newErrors.isRegisteredVoter = "Please indicate if you are registered to vote";
     }
 
-      // Only require voter card number when user says they are a registered voter
-      if (formData.isRegisteredVoter === "yes") {
-        if (!formData.voterCardNumber) {
-          newErrors.voterCardNumber = "Voter's card number is required when registered";
-        } else if (!/^\d{6,12}$/.test(formData.voterCardNumber)) {
-          // allow between 6 and 12 digits for flexibility
-          newErrors.voterCardNumber = "Voter's card number must be 6-12 digits";
-        }
+    // Only require voter card number when user says they are a registered voter
+    if (formData.isRegisteredVoter === "yes") {
+      if (!formData.voterCardNumber) {
+        newErrors.voterCardNumber = "Voter's card number is required when registered";
+      } else if (!/^\d{6,12}$/.test(formData.voterCardNumber)) {
+        // allow between 6 and 12 digits for flexibility
+        newErrors.voterCardNumber = "Voter's card number must be 6-12 digits";
       }
+    }
 
     if (!formData.phoneNumber) {
       newErrors.phoneNumber = "Phone number is required";
@@ -200,6 +216,8 @@ const RegistrationForm = () => {
 
     setIsLoading(true);
     try {
+      const voterCardNumber =
+        formData.isRegisteredVoter === "yes" ? formData.voterCardNumber : "";
       let res;
       if (formData.profilePhoto) {
         const fd = new FormData();
@@ -212,7 +230,7 @@ const RegistrationForm = () => {
         fd.append('constituency', formData.constituency);
         fd.append('ward', formData.ward);
         fd.append('isRegisteredVoter', formData.isRegisteredVoter);
-        fd.append('voterCardNumber', formData.voterCardNumber);
+        fd.append('voterCardNumber', voterCardNumber);
         fd.append('profilePhoto', formData.profilePhoto as File);
 
         res = await fetch(apiUrl("/api/register"), {
@@ -230,7 +248,7 @@ const RegistrationForm = () => {
           constituency: formData.constituency,
           ward: formData.ward,
           isRegisteredVoter: formData.isRegisteredVoter,
-          voterCardNumber: formData.voterCardNumber,
+          voterCardNumber,
         };
         res = await fetch(apiUrl("/api/register"), {
           method: "POST",
@@ -280,6 +298,9 @@ const RegistrationForm = () => {
   const availableConstituencies = formData.province
     ? constituencyOptions[formData.province] || []
     : [];
+
+  const isVoterCardRequired = formData.isRegisteredVoter === "yes";
+  const isVoterCardDisabled = formData.isRegisteredVoter === "no";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -381,7 +402,9 @@ const RegistrationForm = () => {
           const value = e.target.value.replace(/\D/g, "").slice(0, 12);
           handleChange("voterCardNumber", value);
         }}
-        required
+        required={isVoterCardRequired}
+        disabled={isVoterCardDisabled}
+        helperText="Required only when you are registered to vote"
         error={errors.voterCardNumber}
       />
 
