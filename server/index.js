@@ -3,10 +3,30 @@ const cors = require('cors');
 const dbHelper = require('./db');
 
 const app = express();
+
+// Explicit CORS config so Vercel/Railway origins work consistently (preflight + errors)
+const corsOptions = {
+  origin: true, // reflect request origin (allows Vercel previews, production, localhost, etc.)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+// Ensure headers are always present, even on error responses
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-app.use(cors());
 app.use(express.json());
 
 const uploadsDir = path.join(__dirname, 'data', 'uploads');
