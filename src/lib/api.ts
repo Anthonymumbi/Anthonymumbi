@@ -1,14 +1,34 @@
 const normalizeBaseUrl = (url: string) => url.replace(/\/$/, "");
 
+const DEFAULT_PROD_API_BASE = "https://anthonymumbi-production.up.railway.app";
+
 const getDefaultBaseUrl = () => {
   if (typeof window === "undefined") return "http://localhost:4000";
 
-  const { hostname, origin } = window.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "http://localhost:4000";
+  const { hostname, origin, port } = window.location;
+  const isLocalHost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0";
+
+  // When using Vite dev/preview over LAN (e.g., 192.168.x.x:5173),
+  // point the API to the dev server port instead of the UI port.
+  const isLanDevHost =
+    /^10\./.test(hostname) ||
+    /^192\.168\./.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname);
+  const isVitePort = port === "5173" || port === "4173" || port === "4174";
+  if (isVitePort && (isLocalHost || isLanDevHost)) {
+    return `http://${hostname}:4000`;
   }
 
-  return origin;
+  // If running on a deployed frontend (e.g., Vercel) and no env is set, fallback to the Railway API.
+  if (!isLocalHost) {
+    return DEFAULT_PROD_API_BASE;
+  }
+
+  // Localhost fallback.
+  return "http://localhost:4000";
 };
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;

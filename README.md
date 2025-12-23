@@ -34,6 +34,16 @@ npm i
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
+
+## API base URL (frontend)
+
+Set the backend URL in your frontend environment:
+
+1. Copy `.env.example` to `.env`.
+2. Set `VITE_API_BASE_URL` to your backend URL (e.g., `https://anthonymumbi-production.up.railway.app` for Railway, or `http://localhost:4000` for local).
+3. Restart `npm run dev` after changing the env file so the frontend picks up the new value.
+
+If you deploy without setting `VITE_API_BASE_URL`, the frontend will automatically fall back to `https://anthonymumbi-production.up.railway.app` when running on a deployed host, or to `http://localhost:4000` when running locally.
 ```
 
 **Edit a file directly in GitHub**
