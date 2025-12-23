@@ -1,7 +1,6 @@
 const normalizeBaseUrl = (url: string) => url.replace(/\/$/, "");
 
-const getDefaultBaseUrl = () => {
-  if (typeof window === "undefined") return "http://localhost:4000";
+const DEFAULT_PROD_API_BASE = "https://anthonymumbi-production.up.railway.app";
 
   const { hostname, origin, port } = window.location;
   const isLocalHost =
@@ -24,14 +23,11 @@ const getDefaultBaseUrl = () => {
     return "http://localhost:4000";
   }
 
-  return origin;
+  // Deployed default -> Railway
+  return DEFAULT_PROD_API_BASE;
 };
 
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
-
-export const API_BASE_URL = normalizeBaseUrl(
-  rawBaseUrl?.trim() || getDefaultBaseUrl()
-);
+export const API_BASE_URL = resolveBaseUrl();
 
 export const apiUrl = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
