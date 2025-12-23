@@ -2,38 +2,23 @@ const normalizeBaseUrl = (url: string) => url.replace(/\/$/, "");
 
 const DEFAULT_PROD_API_BASE = "https://anthonymumbi-production.up.railway.app";
 
-const sanitizeEnvBase = (raw?: string) => {
-  const trimmed = raw?.trim();
-  if (!trimmed || trimmed === "/") return undefined;
-  if (!/^https?:\/\//i.test(trimmed)) return undefined; // ignore relative/invalid values
-  return normalizeBaseUrl(trimmed);
-};
-
-const resolveBaseUrl = () => {
-  // Highest priority: explicit env var
-  const envBase = sanitizeEnvBase(import.meta.env.VITE_API_BASE_URL as string | undefined);
-  if (envBase) return envBase;
-
-  // Server-side fallback (build-time / SSR): assume production backend
-  if (typeof window === "undefined") return DEFAULT_PROD_API_BASE;
-
-  const { hostname, port } = window.location;
+  const { hostname, origin, port } = window.location;
   const isLocalHost =
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
     hostname === "0.0.0.0";
 
-  // LAN dev on Vite preview/dev ports -> point to local backend
+  // When using Vite dev/preview over LAN (e.g., 192.168.x.x:5173),
+  // point the API to the dev server port instead of the UI port.
   const isLanDevHost =
     /^10\./.test(hostname) ||
     /^192\.168\./.test(hostname) ||
     /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname);
   const isVitePort = port === "5173" || port === "4173" || port === "4174";
   if (isVitePort && (isLocalHost || isLanDevHost)) {
-    return normalizeBaseUrl(`http://${hostname}:4000`);
+    return `http://${hostname}:4000`;
   }
 
-  // Localhost default
   if (isLocalHost) {
     return "http://localhost:4000";
   }

@@ -46,6 +46,8 @@ Set the backend URL in your frontend environment:
 If you deploy without setting `VITE_API_BASE_URL`, the frontend will automatically fall back to `https://anthonymumbi-production.up.railway.app` when running on a deployed host, or to `http://localhost:4000` when running locally/LAN on Vite dev/preview.
 
 Tip: leave `VITE_API_BASE_URL` empty if you want the fallback. If you set it, use a full `http(s)://` URL (relative paths like `/api` are ignored).
+2. Set `VITE_API_BASE_URL` to your backend URL (e.g., `https://api.example.com` or `http://localhost:4000`).
+3. Restart `npm run dev` after changing the env file so the frontend picks up the new value.
 ```
 
 **Edit a file directly in GitHub**
