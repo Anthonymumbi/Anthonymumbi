@@ -1,6 +1,10 @@
 const normalizeBaseUrl = (url: string) => url.replace(/\/$/, "");
 
-const getDefaultBaseUrl = () => {
+const PRODUCTION_FALLBACK_BASE_URL =
+  "https://anthonymumbi-production.up.railway.app";
+
+const getDefaultBaseUrl = (envBaseUrl?: string | null) => {
+  if (envBaseUrl) return envBaseUrl;
   if (typeof window === "undefined") return "http://localhost:4000";
 
   const { hostname, origin, port } = window.location;
@@ -24,14 +28,15 @@ const getDefaultBaseUrl = () => {
     return "http://localhost:4000";
   }
 
-  return origin;
+  // When deployed without an explicit API base URL, default to the
+  // hosted backend instead of the current origin (which is static).
+  return PRODUCTION_FALLBACK_BASE_URL;
 };
 
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
+const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)
+  ?.trim();
 
-export const API_BASE_URL = normalizeBaseUrl(
-  rawBaseUrl?.trim() || getDefaultBaseUrl()
-);
+export const API_BASE_URL = normalizeBaseUrl(getDefaultBaseUrl(rawBaseUrl));
 
 export const apiUrl = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
